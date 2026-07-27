@@ -1,0 +1,57 @@
+import logging
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.models.database import DatabaseManager
+from app.api.upload import router as upload_router
+from app.api.ocr import router as ocr_router
+from app.api.rag import router as rag_router
+from app.config import LOG_LEVEL
+
+# Configure logging parameters
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger("app.main")
+
+# Initialize FastAPI App
+app = FastAPI(
+    title="Multimodal Offline RAG Backend",
+    description="FastAPI Backend for the Offline Multimodal RAG System (NTRO SIH25231)",
+    version="1.0.0"
+)
+
+# Configure CORS Middleware to allow requests from the React Frontend development server
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # During development, we allow all origins. Can be restricted to local ports if needed.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Lifecycle startup event
+@app.on_event("startup")
+def startup_event():
+    """Initializes the database schema and storage directories on server startup."""
+    logger.info("Initializing offline database registry...")
+    try:
+        DatabaseManager.initialize_db()
+        logger.info("Database registry initialized successfully.")
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLite registry: {str(e)}")
+        raise e
+
+# Include routers
+app.include_router(upload_router)
+app.include_router(ocr_router)
+app.include_router(rag_router)
+
+@app.get("/api/health")
+def health_check():
+    """Health check endpoint to verify backend operational status."""
+    return {
+        "status": "healthy",
+        "service": "Multimodal Offline RAG System API Gateway"
+    }

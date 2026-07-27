@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.env
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Data
+data/sqlite/
+data/chroma/
+data/uploads/
+data/ocr_cache/
+data/processed/
+
+# OS
+.DS_Store
+Thumbs.db
