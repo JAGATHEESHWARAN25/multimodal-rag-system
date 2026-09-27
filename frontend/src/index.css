@@ -1,26 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-main: hsl(210, 30%, 98%);
-  --bg-sidebar: hsl(0, 0%, 100%);
-  --bg-card: hsl(0, 0%, 100%);
-  --bg-card-hover: hsl(210, 20%, 96%);
+  --bg-main: #f8f9fa;               /* Essentialist Soft Off-White */
+  --bg-sidebar: #ffffff;            /* Pure Crisp White Sidebar */
+  --bg-card: #ffffff;               /* Pure White Panels */
+  --bg-card-hover: #f1f5f9;         /* Soft Cool Slate Hover */
   
-  --text-main: hsl(220, 35%, 15%);
-  --text-muted: hsl(215, 20%, 45%);
+  --text-main: #1a1a1a;             /* Deep Charcoal for WCAG AAA Max Contrast */
+  --text-muted: #475569;            /* Slate Muted Text */
   
-  --color-accent: hsl(215, 90%, 55%);       /* Academic Blue */
-  --color-accent-purple: hsl(255, 85%, 65%); /* Academic Purple */
-  --color-success: hsl(145, 65%, 45%);       /* Clean Green */
-  --color-danger: hsl(355, 80%, 55%);        /* Crisp Red */
+  --color-accent: #2563eb;          /* Crisp Corporate Blue */
+  --color-accent-purple: #7c3aed;   /* Crisp Violet Accent */
+  --color-success: #059669;         /* Emerald Green Pill */
+  --color-danger: #dc2626;          /* Crimson Red Warning Pill */
   
-  --border-glass: hsla(220, 15%, 85%, 0.8);
-  --border-focus: hsla(215, 90%, 55%, 0.5);
+  --border-glass: rgba(226, 232, 240, 0.85); /* Clean Subtle Light Border */
+  --border-focus: rgba(37, 99, 235, 0.4);    /* Soft Blue Focus Ring */
   
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  --radius-lg: 16px;
-  --radius-md: 10px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-header: 'Outfit', var(--font-sans);
+  --transition-smooth: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --radius-lg: 14px;
+  --radius-md: 8px;
+  --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  --shadow-elevated: 0 10px 30px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
 }
 
 * {
@@ -158,15 +161,15 @@ body {
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   padding: 24px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-soft);
   transition: var(--transition-smooth);
 }
 
 .metric-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   border-color: var(--border-focus);
   background-color: var(--bg-card-hover);
-  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-elevated);
 }
 
 .metric-title {
@@ -174,26 +177,24 @@ body {
   text-transform: uppercase;
   color: var(--text-muted);
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   margin-bottom: 12px;
 }
 
 .metric-value {
   font-size: 32px;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--text-main), var(--color-accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-main);
 }
 
 /* Glassmorphism Panel Wrapper */
 .panel {
-  background-color: var(--bg-card);
-  backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   padding: 30px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-soft);
   flex-grow: 1;
 }
 
@@ -531,8 +532,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
+  background-color: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -541,7 +542,7 @@ body {
 }
 
 .modal-container {
-  background-color: var(--bg-sidebar);
+  background-color: #ffffff;
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   width: 100%;
@@ -549,7 +550,7 @@ body {
   height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-elevated);
   overflow: hidden;
 }
 
@@ -634,6 +635,7 @@ body {
 
 /* Modal Viewers */
 .modal-viewer-frame {
+  position: relative;
   width: 100%;
   height: 100%;
   max-height: calc(80vh - 120px);
@@ -715,4 +717,284 @@ body {
   background-color: rgba(355, 85%, 55%, 0.15);
   color: var(--color-danger);
 }
+
+/* ==========================================================================
+   RAG System — Login Page Production Styles
+   ========================================================================== */
+
+.login-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+  padding: 24px;
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(circle at 50% 0%, hsla(215, 90%, 55%, 0.06) 0%, transparent 60%),
+    radial-gradient(circle at 85% 90%, hsla(255, 85%, 65%, 0.04) 0%, transparent 50%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px;
+  box-shadow: 0 16px 48px -8px rgba(0, 0, 0, 0.08), 0 4px 16px -4px rgba(0, 0, 0, 0.04);
+  transition: var(--transition-smooth);
+}
+
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo-mark {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-purple));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px hsla(215, 90%, 55%, 0.25);
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Polished Inline Error Alert */
+.login-error-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: hsla(355, 80%, 55%, 0.08);
+  border: 1px solid hsla(355, 80%, 55%, 0.25);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-error-icon {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.login-error-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-main);
+  flex-grow: 1;
+}
+
+.login-error-text strong {
+  font-weight: 600;
+  color: var(--color-danger);
+}
+
+.login-error-text span {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.login-error-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.15s ease;
+}
+
+.login-error-dismiss:hover {
+  color: var(--text-main);
+}
+
+/* Form Controls */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.form-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-main);
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+.form-input:focus {
+  border-color: var(--color-accent);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px hsla(215, 90%, 55%, 0.12);
+}
+
+.form-input:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  padding-right: 44px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: 36px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-main);
+  background-color: hsla(215, 20%, 45%, 0.1);
+}
+
+.password-toggle-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+}
+
+.login-submit-btn {
+  height: 46px;
+  width: 100%;
+  margin-top: 8px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-purple));
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px hsla(215, 90%, 55%, 0.25);
+  transition: var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px hsla(215, 90%, 55%, 0.35);
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.login-loading-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.login-footer {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-glass);
+  display: flex;
+  justify-content: center;
+}
+
+.login-secure-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.login-status-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--color-success);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--color-success);
+}
+
 

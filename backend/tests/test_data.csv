@@ -1,0 +1,4 @@
+Device,IP,Location,Status
+Firewall-Core-1,192.168.1.1,DataCenter-Alpha,Online
+Switch-Access-4,192.168.1.10,Office-Floor-2,Online
+Server-Storage-9,192.168.1.50,DataCenter-Beta,Maintenance

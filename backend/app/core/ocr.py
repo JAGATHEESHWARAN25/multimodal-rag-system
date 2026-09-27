@@ -239,6 +239,26 @@ def process_ocr_pipeline(preprocessed_image_path: Path, original_image_path: Pat
         from app.core.text_clean import OCRTextCleaner
         plain_text = OCRTextCleaner.clean(raw_text)
         
+        # 3.5. Execute Vision Intelligence Pipeline (Florence-2) for structural/image reasoning
+        try:
+            from app.core.vision.pipeline import VisionPipeline
+            import cv2
+            vision_pipeline = VisionPipeline()
+            img_array = cv2.imread(str(original_image_path))
+            if img_array is not None:
+                vision_kos, _ = vision_pipeline.process_visual_asset(
+                    image=img_array,
+                    parent_document_id=doc_id,
+                    parent_page_id=f"page_1_{doc_id}",
+                    page_number=1
+                )
+                vision_texts = [ko.content for ko in vision_kos if ko.content]
+                if vision_texts:
+                    vision_block = "\n\n[Vision Intelligence Analysis]\n" + "\n".join(vision_texts)
+                    plain_text += vision_block
+        except Exception as ve:
+            logger.error(f"Vision intelligence failed for {doc_id}: {ve}")
+            
         from app.core.chunking import package_document_chunks
         chunks = package_document_chunks(
             text=plain_text,

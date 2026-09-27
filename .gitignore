@@ -5,19 +5,52 @@ __pycache__/
 .env
 venv/
 env/
+.venv/
+.cache/
 
-# Node
+# Node & Build artifacts
 node_modules/
 dist/
 .vite/
+coverage/
+test-results/
 
-# Data
-data/sqlite/
-data/chroma/
-data/uploads/
-data/ocr_cache/
-data/processed/
+# Databases, Cache & Runtime Data
+*.db
+*.sqlite
+*.sqlite3
+data/
+backend/data/
+backend/metadata.db
+backend/rag_database.db
+backend/test_data/
+backend/demo_data/
+backend/demo_dataset/
+backend/flash_attn/
+test_data/
 
-# OS
+# Log files & Debug scripts
+*.log
+backend/debug_db.txt
+backend/debug_db_screenshot.txt
+backend/debug_orchestrator.py
+backend/inspect_db.py
+backend/reprocess_docs.py
+backend/scratch_docx.py
+backend/test_chroma.py
+
+# Documents, PDFs, PPTX, Reports (Only pure source code pushed)
+*.pdf
+*.pptx
+*.ppt
+*.docx
+*.doc
+*.png
+*.jpg
+*.jpeg
+*.webp
+~$*.docx
+
+# OS & Temp Files
 .DS_Store
 Thumbs.db

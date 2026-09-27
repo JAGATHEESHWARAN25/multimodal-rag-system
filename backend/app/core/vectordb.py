@@ -60,13 +60,20 @@ class NativeSQLiteVectorStore:
         conn.commit()
         conn.close()
 
-    def query_similarity(self, collection_name: str, query_embedding: list, limit: int = 5) -> list:
+    def query_similarity(self, collection_name: str, query_embedding: list, limit: int = 5, filter_document_ids: list = None) -> list:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT chunk_id, text, metadata_json, embedding_json FROM vector_chunks WHERE collection_name = ?",
-            (collection_name,)
-        )
+        if filter_document_ids:
+            placeholders = ",".join(["?"] * len(filter_document_ids))
+            cursor.execute(
+                f"SELECT chunk_id, text, metadata_json, embedding_json FROM vector_chunks WHERE collection_name = ? AND document_id IN ({placeholders})",
+                [collection_name] + list(filter_document_ids)
+            )
+        else:
+            cursor.execute(
+                "SELECT chunk_id, text, metadata_json, embedding_json FROM vector_chunks WHERE collection_name = ?",
+                (collection_name,)
+            )
         rows = cursor.fetchall()
         conn.close()
 
@@ -119,6 +126,24 @@ class NativeSQLiteVectorStore:
         )
         conn.commit()
         conn.close()
+
+    def purge_orphaned_chunks(self, valid_document_ids: list):
+        """Removes vector chunks belonging to deleted or invalid document IDs."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        if valid_document_ids:
+            placeholders = ",".join(["?"] * len(valid_document_ids))
+            cursor.execute(
+                f"DELETE FROM vector_chunks WHERE document_id NOT IN ({placeholders}) OR document_id IS NULL OR document_id = ''",
+                list(valid_document_ids)
+            )
+        else:
+            cursor.execute("DELETE FROM vector_chunks")
+        deleted_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        logger.info(f"Purged {deleted_count} orphaned vector chunks from vector store.")
+        return deleted_count
 
 
 class VectorDatabaseManager:
@@ -178,37 +203,65 @@ class VectorDatabaseManager:
                 store.add_documents(collection_name, ids, embeddings, texts, metadatas)
 
     @classmethod
-    def semantic_query(cls, collection_name: str, query_embedding: list, query_text: str = "", limit: int = 5) -> list:
-        """Retrieves matching document chunk segments using semantic similarities."""
+    def semantic_query(cls, collection_name: str, query_embedding: list, query_text: str = "", limit: int = 5, filter_document_ids: list = None) -> list:
+        """Retrieves matching document chunk segments using semantic similarities, optionally filtered by document IDs."""
         client = cls.get_client()
         
         # Fetch a larger pool of candidates to ensure hybrid search can boost documents with lower dense scores
         fetch_limit = limit * 5
         
         if isinstance(client, NativeSQLiteVectorStore):
-            results = client.query_similarity(collection_name, query_embedding, fetch_limit)
+            results_list = []
+            results = client.query_similarity(collection_name, query_embedding, fetch_limit, filter_document_ids=filter_document_ids)
+            if results and results.get("ids"):
+                for i in range(len(results["ids"])):
+                    results_list.append({
+                        "chunk_id": results["ids"][i],
+                        "text": results["documents"][i],
+                        "metadata": results["metadatas"][i],
+                        "score": 1.0 - results["distances"][i]
+                    })
         else:
+            results_list = []
             try:
                 collection = client.get_collection(name=collection_name)
-                raw_results = collection.query(
-                    query_embeddings=[query_embedding],
-                    n_results=fetch_limit
-                )
-                
-                # Normalize ChromaDB query return formats
-                results = {
-                    "ids": raw_results["ids"][0] if raw_results["ids"] else [],
-                    "documents": raw_results["documents"][0] if raw_results["documents"] else [],
-                    "metadatas": raw_results["metadatas"][0] if raw_results["metadatas"] else [],
-                    "distances": raw_results["distances"][0] if raw_results["distances"] else []
+                query_kwargs = {
+                    "query_embeddings": [query_embedding],
+                    "n_results": fetch_limit
                 }
+                if filter_document_ids:
+                    if len(filter_document_ids) == 1:
+                        query_kwargs["where"] = {"document_id": filter_document_ids[0]}
+                    else:
+                        query_kwargs["where"] = {"document_id": {"$in": filter_document_ids}}
+                raw_results = collection.query(**query_kwargs)
+                if raw_results and raw_results.get("ids") and raw_results["ids"][0]:
+                    for i in range(len(raw_results["ids"][0])):
+                        results_list.append({
+                            "chunk_id": raw_results["ids"][0][i],
+                            "text": raw_results["documents"][0][i],
+                            "metadata": raw_results["metadatas"][0][i],
+                            "score": 1.0 - (raw_results["distances"][0][i] / 2.0)
+                        })
             except Exception as e:
-                logger.error(f"ChromaDB query failed. Reading from SQLite vector fallback. Error: {str(e)}")
+                logger.error(f"ChromaDB query failed: {e}")
+                
+            try:
                 fallback_db = SQLITE_DIR / "vector_index.db"
-                store = NativeSQLiteVectorStore(fallback_db)
-                results = store.query_similarity(collection_name, query_embedding, fetch_limit)
-
-        # Parse matching elements into uniform dictionaries
+                if fallback_db.exists():
+                    store = NativeSQLiteVectorStore(fallback_db)
+                    fallback_results = store.query_similarity(collection_name, query_embedding, fetch_limit, filter_document_ids=filter_document_ids)
+                    if fallback_results and fallback_results.get("ids"):
+                        for i in range(len(fallback_results["ids"])):
+                            results_list.append({
+                                "chunk_id": fallback_results["ids"][i],
+                                "text": fallback_results["documents"][i],
+                                "metadata": fallback_results["metadatas"][i],
+                                "score": 1.0 - fallback_results["distances"][i]
+                            })
+            except Exception as e:
+                logger.error(f"SQLite Fallback query failed: {e}")
+                
         matches = []
         seen_docs = set()
         
@@ -216,41 +269,26 @@ class VectorDatabaseManager:
         import re
         query_words = set(re.findall(r'\b\w{4,}\b', query_text.lower()))
         
-        for i in range(len(results["ids"])):
-            distance = results["distances"][i]
+        for r in results_list:
+            similarity_score = max(0.0, min(1.0, r["score"]))
             
-            # Normalize distance to cosine similarity
-            if isinstance(client, NativeSQLiteVectorStore):
-                # SQLite fallback distance is (1.0 - cosine_similarity)
-                cosine_sim = 1.0 - distance
-            else:
-                # ChromaDB squared L2 distance is (2.0 - 2.0 * cosine_similarity)
-                cosine_sim = 1.0 - (distance / 2.0)
-                
-            # Clamp to [0, 1] for percentage display
-            similarity_score = max(0.0, min(1.0, cosine_sim))
-            
-            # Hybrid Search Boost: Increase score by 10% for every exact query keyword matched
-            text_lower = results["documents"][i].lower()
+            # Hybrid Search Boost
+            text_lower = r["text"].lower()
             keyword_matches = sum(1 for w in query_words if w in text_lower)
             if keyword_matches > 0:
                 similarity_score = min(1.0, similarity_score + (keyword_matches * 0.10))
-            
-            doc_id = results["metadatas"][i].get("document_id")
-            
-            # Confidence Threshold: Drop mathematically distant vectors
-            if similarity_score >= 0.20 and doc_id not in seen_docs:
-                seen_docs.add(doc_id)
+                
+            chunk_id = r["chunk_id"]
+            if similarity_score >= 0.20 and chunk_id not in seen_docs:
+                seen_docs.add(chunk_id)
                 matches.append({
-                    "chunk_id": results["ids"][i],
-                    "text": results["documents"][i],
+                    "chunk_id": chunk_id,
+                    "text": r["text"],
                     "score": round(similarity_score, 4),
-                    "metadata": results["metadatas"][i]
+                    "metadata": r["metadata"]
                 })
-            
-        # Re-sort matches because keyword boosting might have changed the ordering
+                
         matches = sorted(matches, key=lambda x: x["score"], reverse=True)
-        
         return matches[:limit]
 
     @classmethod
@@ -269,3 +307,12 @@ class VectorDatabaseManager:
                 fallback_db = SQLITE_DIR / "vector_index.db"
                 store = NativeSQLiteVectorStore(fallback_db)
                 store.delete_by_document(collection_name, document_id)
+
+    @classmethod
+    def purge_orphaned_chunks(cls, valid_document_ids: list):
+        """Removes vector chunks not matching any active document in SQLite metadata."""
+        fallback_db = SQLITE_DIR / "vector_index.db"
+        if fallback_db.exists():
+            store = NativeSQLiteVectorStore(fallback_db)
+            return store.purge_orphaned_chunks(valid_document_ids)
+        return 0
