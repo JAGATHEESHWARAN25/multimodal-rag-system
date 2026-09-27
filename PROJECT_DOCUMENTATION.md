@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0.0  
 **Target Project:** Multimodal Offline Retrieval-Augmented Generation (RAG) System  
-**Environment:** Air-Gapped / Offline On-Premise Secure Infrastructure (NTRO SIH25231)  
+**Environment:** Air-Gapped / Offline On-Premise Secure Infrastructure  
 **Primary Tech Stack:** Python 3.10+ (FastAPI, PyMuPDF, python-docx, python-pptx, openpyxl, OpenCV, Tesseract OCR, Microsoft Florence-2, SentenceTransformers, ChromaDB, SQLite3, Ollama/Llama-3), React 18 (Vite, Vanilla CSS, Lucide-style UI, React Doc Viewer).
 
 ---

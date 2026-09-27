@@ -1,4 +1,4 @@
-# Multimodal RAG System (NTRO)
+# Multimodal RAG System
 
 This is a local, secure AI assistant that uses Retrieval-Augmented Generation (RAG) to search and chat with your processed documents, spreadsheets, slides, and images. It features a FastAPI backend and a React/Vite frontend operating 100% offline.
 
