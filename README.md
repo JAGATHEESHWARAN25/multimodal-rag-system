@@ -1,132 +1,85 @@
-# Multimodal Offline RAG System
+# Multimodal RAG System (NTRO)
 
-A 100% air-gapped, production-grade **Multimodal Retrieval-Augmented Generation (RAG) System** engineered for secure, local desktop CPU execution without external cloud API dependencies or network exfiltration risks.
+This is a local, secure AI assistant that uses Retrieval-Augmented Generation (RAG) to search and chat with your processed documents and images. It features a FastAPI backend and a React/Vite frontend.
 
-The system natively ingests **7 document and visual modalities**—PDF, DOCX, PPTX, PNG/JPG Images, TXT, CSV, and XLSX—into unified Knowledge Objects, featuring dual-layer vector/graph storage, pre-LLM Role-Based Access Control (RBAC) security boundaries, a 6-stage RAG orchestration pipeline, and deterministic citation overlays.
+## Prerequisites
 
----
-
-## 🌟 Key System Features
-
-- **100% Air-Gapped Local Execution**: Zero outbound network traffic or external cloud model dependencies.
-- **Native 7-Modality Ingestion**: Custom open-source adapters for PDF (`PyMuPDF`), DOCX (`python-docx`), PPTX (`python-pptx`), XLSX/CSV (`openpyxl`/`csv.Sniffer`), Images (`PaddleOCR`/`EasyOCR`), and TXT.
-- **Local Computer Vision & OCR**: Local PaddleOCR and EasyOCR engines extract dense visual text blocks and compute normalized bounding box coordinates (`[ymin, xmin, ymax, xmax]`).
-- **Dual-Layer Hybrid Storage**:
-  - **ChromaDB**: 384-dimensional dense vector embeddings (`All-MiniLM-L6-v2`) for semantic search.
-  - **SQLite Knowledge Graph**: Relational schema capturing `CHILD_OF`, `MENTIONS`, and `NEXT_CELL` entity edges with Breadth-First Search (BFS) pathfinding.
-- **Pre-LLM RBAC Security Boundary**: Evaluates user clearance ranks (`PUBLIC` -> `INTERNAL` -> `CONFIDENTIAL` -> `SECRET`) prior to prompt compilation, preventing unauthorized passage exposure.
-- **6-Stage RAG Orchestration**: Autonomous agent pipeline comprising `QueryPlanner`, `RetrievalAgent`, `GraphAgent`, `EvidenceAgent`, `AnswerAgent`, and `CitationAgent`.
-- **Deterministic Citation Attribution**: Binds answers to exact page numbers, spreadsheet cell coordinates (e.g., `Sheet1!B12`), and visual bounding box overlays.
-- **Essentialist Light UI**: Responsive React 18 / Vite workspace supporting interactive chat SSE streaming, knowledge graph visualization, multi-document comparison, and security audit logging.
-
----
-
-## 🛠 Prerequisites
-
-Before starting, ensure you have the following installed on your local workstation:
-
-1. **Python 3.10+** (Added to system PATH)
-2. **Node.js (v18+) & npm**
-3. **Ollama**:
+Before starting, ensure you have the following installed on your system:
+1. **Python 3.10+** (Ensure it is added to your system PATH)
+2. **Node.js (v18+)**
+3. **Tesseract OCR**: 
+   - Download the Windows installer from [UB-Mannheim Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)
+   - Install it (usually to `C:\Program Files\Tesseract-OCR`)
+4. **Ollama**:
    - Download and install [Ollama](https://ollama.com/)
-   - Open a terminal and run `ollama run llama3` to download the quantized Llama 3 8B model locally.
+   - Open your terminal and run `ollama run llama3` to download the Llama 3 model (this is required for the local LLM).
 
----
-
-## 🚀 Step-by-Step Setup
+## Step-by-Step Setup
 
 ### 1. Backend Setup
 
-Open a terminal in the root directory and navigate to the backend folder:
+Open a terminal or command prompt in the **root directory** of this project, then navigate to the backend:
 
 ```bash
 cd backend
 ```
 
 Create a Python virtual environment and activate it:
-
 ```bash
-# On Windows PowerShell / Command Prompt:
 python -m venv venv
-venv\Scripts\activate
 
-# On Linux / macOS:
+# On Windows:
+venv\Scripts\activate
+# On Mac/Linux:
 # source venv/bin/activate
 ```
 
-Install backend dependencies:
-
+Install the backend dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the `backend/` directory:
+Create a `.env` file in the `backend` folder to configure your local paths. You can create a file named `.env` and add the following lines (update `TESSERACT_PATH` if you installed it somewhere else):
 
 ```env
 ENVIRONMENT=development
 LOG_LEVEL=INFO
+TESSERACT_PATH=C:\Program Files\Tesseract-OCR\tesseract.exe
 CHUNK_SIZE=500
 CHUNK_OVERLAP=50
-OLLAMA_BASE_URL=http://localhost:11434
-EMBEDDING_MODEL=all-MiniLM-L6-v2
 ```
 
-Start the FastAPI backend server:
-
+Start the backend FastAPI server:
 ```bash
 python -m uvicorn app.main:app --port 8000 --reload
 ```
-
-The backend API will be live at `http://localhost:8000` (Swagger UI at `http://localhost:8000/docs`).
-
----
+The backend API will be available at http://localhost:8000.
 
 ### 2. Frontend Setup
 
-Open a **new** terminal window in the root directory and navigate to the frontend folder:
+Open a **new** terminal window in the root directory, then navigate to the frontend:
 
 ```bash
 cd frontend
 ```
 
-Install Node modules:
-
+Install the Node modules:
 ```bash
 npm install
 ```
 
 Start the Vite development server:
-
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:5173` in your web browser to access the Document Intelligence Workspace.
+The frontend will start (usually on http://localhost:5173). Open that URL in your browser to access the Document Intelligence Workspace.
 
----
+## Usage
 
-## 🧪 Running Automated Test Suites
+1. Open the web interface.
+2. Navigate to the **Gallery** to upload documents or screenshots.
+3. The backend will automatically process the images using OCR, create semantic embeddings, and store them locally in ChromaDB and SQLite.
+4. Go to the **Chat** interface to query your documents, or use the **Semantic Search** tab to perform keyword-boosted similarity searches.
 
-### Backend Pytest Integration Suite (91 Tests)
-
-```bash
-cd backend
-pytest
-```
-
-### Frontend Vitest UI Suite (28 Tests)
-
-```bash
-cd frontend
-npm run test
-```
-
----
-
-## 📖 Usage & Workflow
-
-1. **Login & Session Authorization**: Log in with security clearance credentials (`ADMIN`, `OFFICER`, `VIEWER`).
-2. **Multi-Format Document Ingestion**: Upload PDF, DOCX, PPTX, PNG/JPG, TXT, CSV, or XLSX files in the Gallery workspace.
-3. **Automatic Hybrid Indexing**: Files are fingerprinted via SHA-256 duplicate detection, parsed into Knowledge Objects, embedded in ChromaDB, and linked in the SQLite Knowledge Graph.
-4. **Interactive Chat Query**: Ask complex natural language questions. The 6-agent RAG pipeline plans retrieval, traverses graph nodes, filters passages via pre-LLM RBAC rules, streams Ollama tokens via SSE, and highlights bounding box citations.
-5. **Knowledge Graph & Multi-Doc Analysis**: Explore entity relationship graphs, perform side-by-side document comparisons, and inspect security audit logs.
+*Note: All data stays on your local machine and operates entirely offline.*
