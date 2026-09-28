@@ -1374,13 +1374,15 @@ export default function App() {
                         />
                         {img.filename && img.filename.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|pdf)$/) ? (
                           <img 
-                            src={`${BACKEND_URL}/api/images/${img.id}/thumbnail?token=${localStorage.getItem('token')}`} 
+                            src={`${BACKEND_URL}/api/images/${img.id}/thumbnail?token=${localStorage.getItem('token') || token}`} 
                             className="gallery-img" 
                             alt={img.filename} 
                             loading="lazy"
                             onError={(e) => {
                               e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
+                              if (e.target.nextSibling) {
+                                e.target.nextSibling.style.display = 'flex';
+                              }
                             }}
                           />
                         ) : null}
@@ -1388,8 +1390,10 @@ export default function App() {
                           <div style={{ fontSize: '40px', marginBottom: '10px' }}>
                             {img.filename?.toLowerCase().match(/\.(mp4|avi|mov|mkv|webm)$/) ? '🎥'
                              : img.filename?.toLowerCase().match(/\.(wav|mp3|ogg|flac|m4a)$/) ? '🎵'
-                             : img.filename?.toLowerCase().match(/\.(csv|xlsx)$/) ? '📊'
-                             : img.filename?.toLowerCase().match(/\.pptx$/) ? '📽️'
+                             : img.filename?.toLowerCase().match(/\.(csv|xlsx|xls)$/) ? '📊'
+                             : img.filename?.toLowerCase().match(/\.(pptx|ppt)$/) ? '📽️'
+                             : img.filename?.toLowerCase().match(/\.(docx|doc)$/) ? '📝'
+                             : img.filename?.toLowerCase().match(/\.pdf$/) ? '📕'
                              : '📄'}
                           </div>
                           <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{img.filename ? img.filename.split('.').pop().toUpperCase() : 'DOCUMENT'} FILE</div>
@@ -2101,7 +2105,7 @@ export default function App() {
                     <>
                       {selectedImgForModal.filename && selectedImgForModal.filename.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/) ? (
                         <img 
-                          src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${localStorage.getItem('token')}`} 
+                          src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`} 
                           className="modal-viewer-img" 
                           alt="original" 
                           style={{ objectFit: 'contain' }}
@@ -2113,7 +2117,7 @@ export default function App() {
                           <video 
                             id="modal-video-player"
                             controls 
-                            src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${localStorage.getItem('token')}`} 
+                            src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`} 
                             style={{ width: '100%', maxWidth: '640px', maxHeight: '380px', borderRadius: '8px', background: '#000' }}
                           />
                         </div>
@@ -2124,13 +2128,13 @@ export default function App() {
                           <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginBottom: '28px' }}>Native Audio Intelligence Modality & Recording</p>
                           <audio 
                             controls 
-                            src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${localStorage.getItem('token')}`} 
+                            src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`} 
                             style={{ width: '100%', maxWidth: '520px', outline: 'none' }}
                           />
                         </div>
                       ) : selectedImgForModal.filename && selectedImgForModal.filename.toLowerCase().match(/\.(docx|pptx|txt|csv|tsv|xlsx|xls)$/) ? (
                         <iframe
-                          src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/html?token=${localStorage.getItem('token')}`}
+                          src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/html?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`}
                           style={{ width: '100%', height: '100%', minHeight: '600px', border: 'none', backgroundColor: '#fff' }}
                           title="Document Viewer"
                         />
@@ -2138,7 +2142,7 @@ export default function App() {
                         <div style={{ width: '100%', height: '100%', minHeight: '600px', backgroundColor: '#fff' }}>
                           <DocViewer 
                             documents={[{ 
-                              uri: `${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${localStorage.getItem('token')}`,
+                              uri: `${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`,
                               fileName: selectedImgForModal.filename 
                             }]} 
                             pluginRenderers={DocViewerRenderers} 
@@ -2156,7 +2160,7 @@ export default function App() {
                     </>
                   ) : (
                     <img 
-                      src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/ocr/overlay?token=${localStorage.getItem('token')}`} 
+                      src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/ocr/overlay?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`} 
                       className="modal-viewer-img" 
                       alt="overlay" 
                     />

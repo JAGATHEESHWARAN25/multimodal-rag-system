@@ -12,7 +12,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 # NEVER hardcode in production!
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "DEMO_SECRET_KEY_NEVER_USE_IN_PROD")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 hours (Shift expiration)
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours (Extended session expiration)
 
 security = HTTPBearer()
 

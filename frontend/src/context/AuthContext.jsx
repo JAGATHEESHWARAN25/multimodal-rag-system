@@ -10,9 +10,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       sessionStorage.setItem('token', token);
+      localStorage.setItem('token', token);
       fetchUser(token);
     } else {
       sessionStorage.removeItem('token');
+      localStorage.removeItem('token');
       setUser(null);
       setLoading(false);
     }
