@@ -88,6 +88,14 @@ class NativeSQLiteVectorStore:
         matches = []
         for chunk_id, text, meta_json, embed_json in rows:
             vec = np.array(json.loads(embed_json), dtype=np.float32)
+            
+            # Align dimension if vector was created with a previous embedding model
+            if vec.shape[0] != q_vec.shape[0]:
+                if vec.shape[0] < q_vec.shape[0]:
+                    vec = np.pad(vec, (0, q_vec.shape[0] - vec.shape[0]), 'constant')
+                else:
+                    vec = vec[:q_vec.shape[0]]
+
             vec_norm = np.linalg.norm(vec)
             if vec_norm == 0:
                 vec_norm = 1.0

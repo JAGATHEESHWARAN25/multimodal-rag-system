@@ -18,14 +18,14 @@ except ImportError:
 class LocalMathEmbedding:
     """A lightweight, zero-dependency TF-IDF style vector fallback.
     
-    Generates deterministic 768-dimensional normalized vectors representing text semantics,
+    Generates deterministic normalized vectors representing text semantics,
     guaranteeing standard vector operations (like cosine similarity) function offline.
     """
-    def __init__(self, dimension: int = 768):
+    def __init__(self, dimension: int = 384):
         self.dimension = dimension
 
     def encode(self, texts: list) -> np.ndarray:
-        """Converts a list of texts into a 2D numpy array of shape (len(texts), 768)."""
+        """Converts a list of texts into a 2D numpy array of shape (len(texts), dimension)."""
         vectors = []
         for text in texts:
             # Generate deterministic values based on character occurrences
@@ -84,15 +84,22 @@ class LocalEmbeddingsCalculator:
                 )
                 
         # Fallback to pure math encoder
-        _EMBEDDINGS_MODEL_INST = LocalMathEmbedding(dimension=384)
+        target_dim = 384 if "MiniLM" in EMBEDDINGS_MODEL or "384" in EMBEDDINGS_MODEL else 768
+        _EMBEDDINGS_MODEL_INST = LocalMathEmbedding(dimension=target_dim)
         return _EMBEDDINGS_MODEL_INST
 
     @classmethod
+    def get_dimension(cls) -> int:
+        model = cls.get_model()
+        if hasattr(model, "get_sentence_embedding_dimension"):
+            return model.get_sentence_embedding_dimension()
+        if hasattr(model, "dimension"):
+            return model.dimension
+        return 384
+
+    @classmethod
     def calculate_embeddings(cls, texts: list) -> list:
-        """Calculates embeddings for a list of string segments.
-        
-        Returns a list of 768-dimensional float arrays.
-        """
+        """Calculates embeddings for a list of string segments."""
         if not texts:
             return []
             
@@ -105,12 +112,14 @@ class LocalEmbeddingsCalculator:
             return embeddings
         except Exception as e:
             logger.error(f"Error calculating embeddings: {str(e)}")
-            # Fail-safe backup
-            fallback = LocalMathEmbedding(dimension=768)
+            # Fail-safe backup with dynamic dimension alignment
+            dim = cls.get_dimension()
+            fallback = LocalMathEmbedding(dimension=dim)
             return fallback.encode(texts).tolist()
 
     @classmethod
     def calculate_query_embedding(cls, query: str) -> list:
         """Calculates the embedding vector for a single query string."""
         embeddings = cls.calculate_embeddings([query])
-        return embeddings[0] if embeddings else [0.0] * 768
+        dim = cls.get_dimension()
+        return embeddings[0] if embeddings else [0.0] * dim
