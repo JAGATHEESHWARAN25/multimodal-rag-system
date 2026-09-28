@@ -247,23 +247,35 @@ def get_ocr_overlay(image_id: str, current_user: UserContext = Depends(get_curre
         
     authorize_document_classification(current_user, record.get("classification", "PUBLIC"))
 
+    from app.config import UPLOADS_DIR
     overlay_path = OCR_OUTPUT_DIR / f"{image_id}_overlay.png"
-    if not overlay_path.exists():
-        # Fallback to the original processed image if overlay is not available
-        processed_path = PROCESSED_DIR / f"{image_id}_processed.png"
-        if processed_path.exists():
-            return FileResponse(str(processed_path), media_type="image/png")
-            
-        # Fallback to the original raw image
-        if Path(record.get("storage_path", "")).exists():
-            return FileResponse(record["storage_path"])
-            
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="OCR layout overlay image missing. Please trigger OCR process first."
-        )
+    if overlay_path.exists():
+        return FileResponse(str(overlay_path), media_type="image/png")
         
-    return FileResponse(str(overlay_path), media_type="image/png")
+    # Fallback 1: Processed image
+    processed_path = PROCESSED_DIR / f"{image_id}_processed.png"
+    if processed_path.exists():
+        return FileResponse(str(processed_path), media_type="image/png")
+        
+    # Fallback 2: Thumbnail image
+    thumb_path = UPLOADS_DIR / f"thumb_{image_id}.jpg"
+    if thumb_path.exists():
+        return FileResponse(str(thumb_path), media_type="image/jpeg")
+
+    # Fallback 3: Disk storage raw file
+    raw_storage_path = Path(record.get("storage_path", ""))
+    if not raw_storage_path.exists() or not raw_storage_path.is_file():
+        raw_storage_path = UPLOADS_DIR / f"{record['id']}_{record.get('filename', '')}"
+
+    if raw_storage_path.exists() and raw_storage_path.is_file():
+        filename = record.get("filename", "").lower()
+        if filename.endswith((".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp")):
+            return FileResponse(str(raw_storage_path))
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="OCR layout overlay image missing for this document modality."
+    )
 
 @router.get("/{image_id}/ocr/chunks")
 def get_ocr_chunks(image_id: str, current_user: UserContext = Depends(get_current_user_flexible)):

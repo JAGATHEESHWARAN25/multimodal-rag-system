@@ -2163,6 +2163,10 @@ export default function App() {
                       src={`${BACKEND_URL}/api/images/${selectedImgForModal.id}/ocr/overlay?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`} 
                       className="modal-viewer-img" 
                       alt="overlay" 
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `${BACKEND_URL}/api/images/${selectedImgForModal.id}/raw?token=${token || localStorage.getItem('token') || sessionStorage.getItem('token')}`;
+                      }}
                     />
                   )}
                   {/* CITATION HIGHLIGHT OVERLAY */}
