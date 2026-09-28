@@ -66,7 +66,7 @@ SQLITE_DB_PATH = SQLITE_DIR / "metadata.db"
 CHROMA_DIR = DATA_DIR / "chroma"
 BENCHMARK_DIR = DATA_DIR / "benchmarks"
 
-EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "BAAI/bge-base-en-v1.5")
+EMBEDDINGS_MODEL = os.getenv("EMBEDDINGS_MODEL", "all-MiniLM-L6-v2")
 
 # Create directories if they do not exist
 for path in [DATA_DIR, UPLOADS_DIR, PROCESSED_DIR, OCR_OUTPUT_DIR, SQLITE_DIR, CHROMA_DIR, BENCHMARK_DIR]:

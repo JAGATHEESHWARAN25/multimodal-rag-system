@@ -70,18 +70,21 @@ class LocalEmbeddingsCalculator:
         if _IMPORT_SUCCESS and not force_mock:
             try:
                 logger.info(f"Loading local SentenceTransformer model: '{EMBEDDINGS_MODEL}'...")
-                # Load model locally; if offline and not cached, this will throw an error caught below
-                _EMBEDDINGS_MODEL_INST = SentenceTransformer(EMBEDDINGS_MODEL)
+                try:
+                    # Attempt offline load from local cache first to prevent HuggingFace ping retries
+                    _EMBEDDINGS_MODEL_INST = SentenceTransformer(EMBEDDINGS_MODEL, local_files_only=True)
+                except Exception:
+                    _EMBEDDINGS_MODEL_INST = SentenceTransformer(EMBEDDINGS_MODEL)
                 logger.info("SentenceTransformer model loaded successfully.")
                 return _EMBEDDINGS_MODEL_INST
             except Exception as e:
                 logger.error(
-                    f"Failed to download/load SentenceTransformer '{EMBEDDINGS_MODEL}' offline.\n"
+                    f"Failed to download/load SentenceTransformer '{EMBEDDINGS_MODEL}'.\n"
                     f"Falling back to LocalMathEmbedding simulator. Error: {str(e)}"
                 )
                 
         # Fallback to pure math encoder
-        _EMBEDDINGS_MODEL_INST = LocalMathEmbedding(dimension=768)
+        _EMBEDDINGS_MODEL_INST = LocalMathEmbedding(dimension=384)
         return _EMBEDDINGS_MODEL_INST
 
     @classmethod
